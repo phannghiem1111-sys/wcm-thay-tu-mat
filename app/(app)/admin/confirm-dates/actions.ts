@@ -1,5 +1,7 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
+import { syncToSheet } from "@/lib/sheets";
 import type { Prisma } from "@prisma/client";
 import { requireAction } from "@/lib/auth";
 import { can } from "@/lib/permissions";
@@ -25,6 +27,7 @@ async function resolve(ids: string[], choice: Choice, userId: string) {
     }
   });
   revalidatePath("/", "layout");
+  after(() => syncToSheet());
 }
 
 export async function resolveOne(id: string, choice: Choice) {
