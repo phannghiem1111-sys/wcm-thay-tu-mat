@@ -6,11 +6,18 @@ import { STATUS_LABEL, STATUS_ORDER } from "@/lib/domain";
 import { formatVN } from "@/lib/dates";
 import { StatusChip } from "@/components/StatusChip";
 import { Filters } from "@/components/Filters";
+import { QuickStatus } from "@/components/QuickStatus";
+import { assignedStoreIds } from "@/lib/auth";
+import { canEditField, canEditStore } from "@/lib/permissions";
+import { statusIndex } from "@/lib/domain";
 
 const uniq = (a: (string | null)[]) => [...new Set(a.filter(Boolean) as string[])].sort((x, y) => x.localeCompare(y, "vi"));
 
 export default async function StoreList({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
-  await requirePage(can.viewStoreList);
+  const u = await requirePage(can.viewStoreList);
+  const mine = await assignedStoreIds(u.id);
+  const canQuick = (id: string) => canEditField(u.role, "trangThai") && canEditStore(u, id, mine);
+  const options = STATUS_ORDER.map((k) => [k, STATUS_LABEL[k]] as [string, string]);
   const sp = await searchParams;
   const f: ListFilters = { q: sp.q, tinh: sp.tinh, status: sp.status, doiTruong: sp.doiTruong, nhaThau: sp.nhaThau, flag: sp.flag, phuTrach: sp.phuTrach, sort: sp.sort };
   const { stores } = await loadStoreViews();
@@ -20,6 +27,7 @@ export default async function StoreList({ searchParams }: { searchParams: Promis
       <h2>Cửa hàng <span className="muted" style={{ fontWeight: 500, fontSize: 16 }}>· {stores.length}</span></h2>
       <Filters
         tinh={uniq(stores.map((s) => s.tinh))}
+        sites={stores.map((s) => [s.site, s.tenCuaHang] as [string, string])}
         status={STATUS_ORDER.map((s) => [s, STATUS_LABEL[s]])}
         doiTruong={uniq(stores.map((s) => s.doiTruongKtkv))}
         nhaThau={uniq(stores.flatMap((s) => [s.nhaThauLapDat, s.nhaThauVanChuyen]))}
@@ -36,22 +44,27 @@ export default async function StoreList({ searchParams }: { searchParams: Promis
       </div>
       <div className="list">
         {rows.map((s) => (
-          <Link key={s.site} className="item" href={`/stores/${encodeURIComponent(s.site)}`}>
-            <div className="t1">
-              <div><div className="name">{s.tenCuaHang}</div><div className="code">{s.site} · {s.tinh}{s.doiTruongKtkv ? ` · Đội: ${s.doiTruongKtkv}` : " · Chưa gán đội"}</div></div>
-              {s.late ? <span className="chip late">Trễ tiến độ</span> : <StatusChip s={s.trangThai} />}
+          <div key={s.site} className="item">
+            <div className="qs-pos">
+              {canQuick(s.id) ? <QuickStatus site={s.site} current={s.trangThai} label={STATUS_LABEL[s.trangThai]} cls={`st-${statusIndex(s.trangThai)}`} options={options} /> : <StatusChip s={s.trangThai} />}
             </div>
-            <div className="meta">
-              <span>{s.late ? `Trạng thái: ${STATUS_LABEL[s.trangThai]}` : s.ngayLapThucTe ? `Lắp thực tế ${formatVN(s.ngayLapThucTe)}` : `VC DK ${formatVN(s.ngayVcDuKien) || "—"}`}</span>
-              <span className={s.late ? "lt" : "tr"}>Lắp dự kiến {formatVN(s.ngayLapDuKien) || "—"}</span>
-            </div>
-            {(s.flags.length > 0 || s.pendingDates > 0) && (
-              <div className="chips">
-                {s.pendingDates > 0 && <span className="chip flag">Chờ xác nhận ngày</span>}
-                {s.flags.length > 0 && <span className="chip flag" title={s.flags.join("\n")}>{s.flags.length} cờ lỗi</span>}
+            <Link className="itemlink" href={`/stores/${encodeURIComponent(s.site)}`}>
+              <div className="t1">
+                <div><div className="name">{s.tenCuaHang}</div><div className="code">{s.site} · {s.tinh}{s.doiTruongKtkv ? ` · Đội: ${s.doiTruongKtkv}` : " · Chưa gán đội"}</div></div>
               </div>
-            )}
-          </Link>
+              <div className="meta">
+                <span>{s.ngayLapThucTe ? `Lắp thực tế ${formatVN(s.ngayLapThucTe)}` : `VC DK ${formatVN(s.ngayVcDuKien) || "—"}`}</span>
+                <span className={s.late ? "lt" : "tr"}>Lắp dự kiến {formatVN(s.ngayLapDuKien) || "—"}</span>
+              </div>
+              {(s.late || s.flags.length > 0 || s.pendingDates > 0) && (
+                <div className="chips">
+                  {s.late && <span className="chip late">Trễ tiến độ</span>}
+                  {s.pendingDates > 0 && <span className="chip flag">Chờ xác nhận ngày</span>}
+                  {s.flags.length > 0 && <span className="chip flag" title={s.flags.join("\n")}>{s.flags.length} cờ lỗi</span>}
+                </div>
+              )}
+            </Link>
+          </div>
         ))}
         {!rows.length && <p className="muted">Không có cửa hàng phù hợp.</p>}
       </div>

@@ -1,16 +1,22 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { loadStoreViews } from "@/lib/stores";
-import { computeDashboard, statusIndex, STATUS_LABEL, type GroupStat } from "@/lib/domain";
+import { computeDashboard, statusIndex, STATUS_LABEL, STATUS_ORDER, type GroupStat } from "@/lib/domain";
 import { formatVN, addDaysISO } from "@/lib/dates";
 import { formatPct, formatVND } from "@/lib/format";
 import { can } from "@/lib/permissions";
 import { StatusChip } from "@/components/StatusChip";
+import { QuickStatus } from "@/components/QuickStatus";
+import { assignedStoreIds } from "@/lib/auth";
+import { canEditField, canEditStore } from "@/lib/permissions";
 
 export default async function Dashboard() {
   const u = await requireUser();
   const { today, stores } = await loadStoreViews();
   const linkable = can.viewStoreList(u);
+  const mine = await assignedStoreIds(u.id);
+  const canQuick = (id: string) => canEditField(u.role, "trangThai") && canEditStore(u, id, mine);
+  const options = STATUS_ORDER.map((k) => [k, STATUS_LABEL[k]] as [string, string]);
   if (!stores.length)
     return (
       <div className="card">
@@ -52,7 +58,7 @@ export default async function Dashboard() {
   );
   const MiniTable = ({ rows }: { rows: typeof stores }) => (
     <table className="t"><tbody>{rows.slice(0, 8).map((s) => (
-      <tr key={s.site}><td>{linkable ? <Link href={`/stores/${s.site}`}>{s.site}</Link> : s.site} <span className="small muted">{s.tinh}</span></td><td>{formatVN(s.ngayLapDuKien)}</td><td><StatusChip s={s.trangThai} /></td></tr>
+      <tr key={s.site}><td>{linkable ? <Link href={`/stores/${s.site}`}>{s.site}</Link> : s.site} <span className="small muted">{s.tinh}</span></td><td>{formatVN(s.ngayLapDuKien)}</td><td>{canQuick(s.id) ? <QuickStatus site={s.site} current={s.trangThai} label={STATUS_LABEL[s.trangThai]} cls={`st-${statusIndex(s.trangThai)}`} options={options} /> : <StatusChip s={s.trangThai} />}</td></tr>
     ))}</tbody></table>
   );
 

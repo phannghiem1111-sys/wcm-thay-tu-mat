@@ -3,7 +3,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useRef } from "react";
 
 type Opt = [string, string];
-export function Filters({ tinh, status, doiTruong, nhaThau }: { tinh: string[]; status: Opt[]; doiTruong: string[]; nhaThau: string[] }) {
+export function Filters({ tinh, status, doiTruong, nhaThau, sites }: { tinh: string[]; status: Opt[]; doiTruong: string[]; nhaThau: string[]; sites: Opt[] }) {
   const sp = useSearchParams();
   const router = useRouter();
   const form = useRef<HTMLFormElement>(null);
@@ -24,8 +24,9 @@ export function Filters({ tinh, status, doiTruong, nhaThau }: { tinh: string[]; 
   const o = (a: string[]): Opt[] => a.map((x) => [x, x]);
   return (
     <form ref={form} className="filters" onSubmit={(e) => { e.preventDefault(); submit(); }}>
-      <input className="full" type="search" name="q" placeholder="Tìm tên cửa hàng hoặc mã Site" defaultValue={sp.get("q") ?? ""}
+      <input className="full" type="search" name="q" list="site-suggest" autoComplete="off" placeholder="Tìm tên cửa hàng hoặc mã Site" defaultValue={sp.get("q") ?? ""}
         onChange={() => { clearTimeout(timer.current); timer.current = setTimeout(submit, 300); }} />
+      <datalist id="site-suggest">{sites.map(([code, name]) => <option key={code} value={code} label={name} />)}</datalist>
       {sel("tinh", "Tất cả tỉnh", o(tinh))}
       {sel("status", "Tất cả trạng thái", status)}
       {sel("doiTruong", "Tất cả đội trưởng", [...o(doiTruong), ["__none", "(Chưa có đội trưởng)"]])}
