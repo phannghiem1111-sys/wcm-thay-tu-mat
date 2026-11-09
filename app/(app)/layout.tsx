@@ -12,8 +12,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <>
       <header className="top">
-        <h1>Thay tủ mát WCM</h1>
-        <div className="who">{u.name}<br />{ROLE_LABEL[u.role]}</div>
+        <div className="ttl">
+          <div className="sub">{u.name} · {ROLE_LABEL[u.role]}</div>
+          <h1>Thay tủ mát WCM</h1>
+        </div>
+        <div className="avatar" aria-hidden="true">{(u.name.trim()[0] ?? "W").toUpperCase()}</div>
         <form action={logoutAction}><button title="Đăng xuất">Thoát</button></form>
       </header>
       <main>{children}</main>
