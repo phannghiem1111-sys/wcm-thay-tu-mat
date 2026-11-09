@@ -1,4 +1,5 @@
-// Seed: tạo Admin + nạp dữ liệu từ file Excel.
+// Seed: tạo Admin + nạp dữ liệu từ file Excel (nếu có). Chạy tự động khi build trên Vercel.
+// Không đổi mật khẩu Admin đã tồn tại.
 //   SEED_EXCEL=./data/DS_Thay_tu_mat_WCM_tracking_final.xlsx ADMIN_EMAIL=... ADMIN_PASSWORD=... npm run db:seed
 import { readFileSync, existsSync } from "node:fs";
 import { PrismaClient } from "@prisma/client";
@@ -11,7 +12,10 @@ const prisma = new PrismaClient();
 async function main() {
   const email = (process.env.ADMIN_EMAIL ?? "").trim().toLowerCase();
   const password = process.env.ADMIN_PASSWORD ?? "";
-  if (!email || password.length < 8) throw new Error("Cần ADMIN_EMAIL và ADMIN_PASSWORD (≥ 8 ký tự)");
+  if (!email || password.length < 8) {
+    if (process.env.VERCEL) { console.log("Bỏ qua seed: chưa đặt ADMIN_EMAIL / ADMIN_PASSWORD (≥ 8 ký tự)."); return; }
+    throw new Error("Cần ADMIN_EMAIL và ADMIN_PASSWORD (≥ 8 ký tự)");
+  }
   const admin = await prisma.user.upsert({
     where: { email },
     update: { role: "ADMIN", active: true },

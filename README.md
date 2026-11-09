@@ -22,8 +22,8 @@ Cần PostgreSQL 14+. Nhanh nhất: `docker run -d -p 5432:5432 -e POSTGRES_PASS
 2. Vercel → New Project → import repo.
 3. Storage → thêm **Neon Postgres** (Marketplace). Đặt Custom Prefix = `DATABASE` để có `DATABASE_URL` (pooled) và `DATABASE_URL_UNPOOLED`.
 4. Thêm biến `AUTH_SECRET`.
-5. Không cần sửa build command: script `vercel-build` tự chạy `prisma migrate deploy`.
-6. Seed lần đầu từ máy local, trỏ `DATABASE_URL`/`DATABASE_URL_UNPOOLED` vào DB Neon: `npm run db:seed`. Hoặc đăng nhập Admin rồi dùng màn Import.
+5. Không cần sửa build command: script `vercel-build` tự chạy `prisma migrate deploy` và tạo tài khoản Admin từ biến `ADMIN_EMAIL`, `ADMIN_PASSWORD` (thêm cùng `AUTH_SECRET` trong Settings → Environment Variables).
+6. Đăng nhập Admin → Import → chọn file Excel để nạp 47 cửa hàng. (Hoặc seed từ máy local, trỏ `DATABASE_URL`/`DATABASE_URL_UNPOOLED` vào DB Neon: `npm run db:seed`.)
 
 ## Phân quyền (kiểm tra ở server: `lib/permissions.ts`, `lib/auth.ts`)
 | Vai trò | Dashboard | Danh sách/Chi tiết | Sửa (giai đoạn 2) | Import, người dùng, xác nhận ngày |
