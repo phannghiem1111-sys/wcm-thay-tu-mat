@@ -58,3 +58,25 @@ tests/                 vitest
 
 ## Bản PWA cũ (thư mục gốc)
 Các file `index.html`, `sw.js`, `schema.sql`, `config.js`… ở thư mục gốc là bản PWA tĩnh làm trước (Supabase), đang phục vụ GitHub Pages. Không ảnh hưởng app Next.js; có thể xoá khi không dùng nữa.
+
+## Ảnh hiện trường (Vercel Blob)
+
+1. Vercel → project → **Storage** → **Create Database** → **Blob** → Create, nối vào project (Production + Preview).
+2. Vercel tự thêm biến `BLOB_READ_WRITE_TOKEN`. **Redeploy**.
+3. Ảnh được nén trên trình duyệt (cạnh dài ≤ 1600px, JPEG) rồi mới tải lên; tối đa 10 ảnh/cửa hàng. Link ảnh được ghi vào Google Sheets.
+
+## Google Sheets (xem và sao lưu, dữ liệu chính ở app)
+
+App ghi sang tab **“Cập nhật từ app”** (không đụng các tab có sẵn) mỗi khi cập nhật, thêm/xoá ảnh, import hoặc xác nhận ngày.
+
+1. Mở Google Sheet → **Tiện ích mở rộng → Apps Script**.
+2. Xoá code mẫu, dán nội dung file [`docs/google-sheets.gs`](docs/google-sheets.gs). Đổi `SECRET` thành một chuỗi bí mật bất kỳ.
+3. **Triển khai → Triển khai mới → Loại: Ứng dụng web** · Thực thi bằng: *Tôi* · Ai có quyền truy cập: *Bất kỳ ai* → Triển khai → cấp quyền → copy **URL ứng dụng web**.
+4. Vercel → Settings → Environment Variables, thêm:
+   - `SHEETS_WEBHOOK_URL` = URL ở bước 3
+   - `SHEETS_WEBHOOK_SECRET` = đúng chuỗi `SECRET` ở bước 2
+   - `GOOGLE_SHEET_ID` = phần giữa `/d/` và `/edit` trong link Sheet (để app hiện nút “Mở Google Sheets”)
+   - `APP_URL` = địa chỉ app, ví dụ `https://wcm-thay-tu-mat.vercel.app` (để Sheet có link về từng cửa hàng)
+5. Redeploy, vào **Import** → **Đồng bộ toàn bộ ngay**.
+
+Chưa cấu hình các biến trên thì app vẫn chạy bình thường, chỉ không ghi ảnh/Sheet.

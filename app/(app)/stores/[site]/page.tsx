@@ -12,6 +12,8 @@ import { canEditField } from "@/lib/permissions";
 import { UPDATE_FIELDS } from "@/lib/update";
 import { STATUS_ORDER } from "@/lib/domain";
 import { UpdateForm } from "./UpdateForm";
+import { Photos } from "./Photos";
+import { sheetUrl } from "@/lib/sheets";
 
 const LABEL = Object.fromEntries(COLUMNS.map(([k, l]) => [k, l])) as Record<string, string>;
 const FIELD_LABEL: Record<string, string> = { VC_DU_KIEN: "Ngày VC - DỰ KIẾN", VC_THUC_TE: "Ngày VC - THỰC TẾ", LAP_DU_KIEN: "Ngày lắp - DỰ KIẾN", LAP_THUC_TE: "Ngày lắp - THỰC TẾ" };
@@ -24,6 +26,7 @@ export default async function StoreDetail({ params }: { params: Promise<{ site: 
     include: {
       dateConfirmations: { where: { resolvedAt: null } },
       auditLogs: { orderBy: { createdAt: "desc" }, take: 100, include: { user: { select: { name: true, email: true } } } },
+      photos: { orderBy: { createdAt: "asc" } },
       assignments: { include: { user: { select: { name: true, role: true } } } },
     },
   });
@@ -73,6 +76,8 @@ export default async function StoreDetail({ params }: { params: Promise<{ site: 
           initial={{ trangThai: s.trangThai, ngayVcThucTe: iso.ngayVcThucTe ?? "", ngayLapThucTe: iso.ngayLapThucTe ?? "", serialThucTe: s.serialThucTe ?? "", ghiChu: s.ghiChu ?? "" }}
         />
       )}
+      <Photos site={s.site} canEdit={editable && canEditField(u.role, "photos")} storageReady={!!process.env.BLOB_READ_WRITE_TOKEN} photos={s.photos.map((p) => ({ id: p.id, url: p.url, mine: u.role === "ADMIN" || p.uploadedBy === u.id }))} />
+      {sheetUrl() && <a className="btn big" href={sheetUrl()!} target="_blank" rel="noopener noreferrer" style={{ marginBottom: 12 }}>📊 Mở Google Sheets</a>}
       <div className="grid2">
         <div className="card"><h3>Mốc tiến độ</h3><ul className="tl">
           <Milestone n={1} label="Vận chuyển đến CH" dk={iso.ngayVcDuKien} tt={iso.ngayVcThucTe} field="VC_DU_KIEN" />

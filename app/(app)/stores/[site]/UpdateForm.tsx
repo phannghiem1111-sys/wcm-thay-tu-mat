@@ -32,7 +32,7 @@ export function UpdateForm({ site, editable, statuses, initial }: UpdateFormProp
     return (
       <>
         {msg?.ok && <div className="okmsg">{msg.text[0]}</div>}
-        <button className="btn pri big" onClick={() => { setMsg(null); setOpen(true); }}>Cập nhật tiến độ</button>
+        <button className="btn pri big" style={{ marginBottom: 12 }} onClick={() => { setMsg(null); setOpen(true); }}>Cập nhật tiến độ</button>
       </>
     );
   return (

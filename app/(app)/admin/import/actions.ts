@@ -1,5 +1,7 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
+import { syncToSheet } from "@/lib/sheets";
 import { requireAction } from "@/lib/auth";
 import { can } from "@/lib/permissions";
 import { prisma } from "@/lib/db";
@@ -36,6 +38,7 @@ export async function commitImport(fd: FormData): Promise<{ ok: true; summary: A
     if (!result.rows.length) return { ok: false, error: "Không có dòng hợp lệ để nhập" };
     const summary = await applyImport(prisma, result, u.id);
     revalidatePath("/", "layout");
+    after(() => syncToSheet());
     return { ok: true, summary, skipped: result.errors.length };
   } catch (e) {
     return { ok: false, error: (e as Error).message };
