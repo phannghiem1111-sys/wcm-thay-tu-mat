@@ -1,0 +1,162 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN
+  DOI_TRUONG
+  NHA_THAU
+  VIEWER
+}
+
+enum StoreStatus {
+  CHUA_CAP_NHAT
+  CHUA_XUAT_KHO
+  DANG_VAN_CHUYEN
+  DA_DEN_CH
+  DANG_LAP
+  HOAN_THANH
+  DA_NGHIEM_THU
+}
+
+/// Mốc ngày có thể bị nghi đảo ngày/tháng khi import
+enum DateField {
+  VC_DU_KIEN
+  VC_THUC_TE
+  LAP_DU_KIEN
+  LAP_THUC_TE
+}
+
+model User {
+  id           String            @id @default(cuid())
+  email        String            @unique
+  name         String
+  passwordHash String
+  role         Role              @default(VIEWER)
+  active       Boolean           @default(true)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  assignments  StoreAssignment[]
+  auditLogs    AuditLog[]
+  photos       Photo[]
+}
+
+model Store {
+  id                 String       @id @default(cuid())
+  stt                Int?
+  phuTrachKhuVuc     String?
+  tinh               String?
+  thangKhaiTruong    DateTime?    @db.Date
+  site               String       @unique
+  tenCuaHang         String
+  tinhCu             String?
+  quanHuyenCu        String?
+  cht                String?
+  sdtCht             String?
+
+  hienTrangMayNen    String?
+  doiTruongKtkv      String?
+  ktkv               String?
+  nhaThauLapDat      String?
+  nhaThauVanChuyen   String?
+  kmDenCh            Decimal?     @db.Decimal(10, 1)
+
+  ngayVcDuKien       DateTime?    @db.Date
+  ngayVcThucTe       DateTime?    @db.Date
+  ngayLapDuKien      DateTime?    @db.Date
+  ngayLapThucTe      DateTime?    @db.Date
+  trangThai          StoreStatus  @default(CHUA_CAP_NHAT)
+
+  maTsXuatKho        String?
+  tenVatTu           String?
+  article            String?
+  nhaCungCap         String?
+  model              String?
+  serialGoc          String?
+  serialThucTe       String?
+  xuatXu             String?
+  dvt                String?
+  soLuong            Int          @default(1)
+  donGiaTaiSan       BigInt       @default(0)
+  donGiaVanChuyen    BigInt       @default(0)
+  donGiaLapDat       BigInt       @default(0)
+
+  ghiChu             String?
+  linkHoSo           String?
+  ngayCapNhat        DateTime     @updatedAt
+
+  createdAt          DateTime     @default(now())
+
+  assignments        StoreAssignment[]
+  auditLogs          AuditLog[]
+  dateConfirmations  DateConfirmation[]
+  photos             Photo[]
+
+  @@index([tinh])
+  @@index([trangThai])
+  @@index([doiTruongKtkv])
+  @@index([ngayLapDuKien])
+}
+
+/// Gán cửa hàng cho Đội trưởng KTKV / Nhà thầu. Chỉ người được gán mới sửa được cửa hàng.
+model StoreAssignment {
+  userId    String
+  storeId   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@id([userId, storeId])
+  @@index([storeId])
+}
+
+/// Ngày nghi đảo ngày/tháng: giá trị đang lưu = valueAsIs (null nếu cách đọc như file không hợp lệ), chờ Admin xác nhận
+model DateConfirmation {
+  id           String    @id @default(cuid())
+  storeId      String
+  field        DateField
+  valueAsIs    DateTime? @db.Date
+  valueSwapped DateTime? @db.Date
+  note         String?
+  resolvedAt   DateTime?
+  resolvedById String?
+  createdAt    DateTime  @default(now())
+  store        Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([storeId, field])
+}
+
+model AuditLog {
+  id        BigInt   @id @default(autoincrement())
+  storeId   String?
+  userId    String?
+  action    String
+  /// { field: { old, new } }
+  changes   Json?
+  createdAt DateTime @default(now())
+  store     Store?   @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([storeId, createdAt])
+}
+
+/// Ảnh lưu trên object storage (giai đoạn 2)
+model Photo {
+  id         String   @id @default(cuid())
+  storeId    String
+  key        String   @unique
+  url        String
+  sizeBytes  Int
+  uploadedBy String?
+  createdAt  DateTime @default(now())
+  store      Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  user       User?    @relation(fields: [uploadedBy], references: [id], onDelete: SetNull)
+
+  @@index([storeId])
+}

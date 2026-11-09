@@ -1,0 +1,8 @@
+node_modules
+.next
+.env
+.env*.local
+next-env.d.ts
+*.tsbuildinfo
+# File Excel thật có SĐT cá nhân — không commit
+data/*.xlsx
