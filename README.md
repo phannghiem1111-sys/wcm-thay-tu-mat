@@ -55,3 +55,6 @@ lib/import/            parse.ts (đọc Excel), apply.ts (ghi DB + audit)
 app/(app)/             dashboard, stores, admin/import, admin/confirm-dates, admin/users
 tests/                 vitest
 ```
+
+## Bản PWA cũ (thư mục gốc)
+Các file `index.html`, `sw.js`, `schema.sql`, `config.js`… ở thư mục gốc là bản PWA tĩnh làm trước (Supabase), đang phục vụ GitHub Pages. Không ảnh hưởng app Next.js; có thể xoá khi không dùng nữa.
