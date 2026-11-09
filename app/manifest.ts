@@ -5,8 +5,8 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "Tủ mát WCM",
     start_url: "/",
     display: "standalone",
-    background_color: "#f4f6f5",
-    theme_color: "#0f6b4f",
+    background_color: "#F5F7FA",
+    theme_color: "#C62828",
     lang: "vi",
     icons: [{ src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" }],
   };

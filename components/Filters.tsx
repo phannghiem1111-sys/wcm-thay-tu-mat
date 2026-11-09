@@ -30,7 +30,7 @@ export function Filters({ tinh, status, doiTruong, nhaThau }: { tinh: string[]; 
       {sel("status", "Tất cả trạng thái", status)}
       {sel("doiTruong", "Tất cả đội trưởng", [...o(doiTruong), ["__none", "(Chưa có đội trưởng)"]])}
       {sel("nhaThau", "Tất cả nhà thầu", o(nhaThau))}
-      {sel("flag", "Tất cả", [["todo", "Chưa hoàn thành"], ["done", "Đã hoàn thành"], ["late", "Trễ tiến độ"], ["flag", "Có cờ lỗi"], ["pending", "Chờ xác nhận ngày"]])}
+      {sel("flag", "Mọi tình trạng", [["todo", "Chưa hoàn thành"], ["done", "Đã hoàn thành"], ["late", "Trễ tiến độ"], ["flag", "Có cờ lỗi"], ["pending", "Chờ xác nhận ngày"]])}
       <select name="sort" defaultValue={sp.get("sort") ?? "ngayLapDuKien"} onChange={submit} aria-label="Sắp xếp">
         <option value="ngayLapDuKien">Ngày lắp DK ↑</option>
         <option value="ngayLapDuKien:desc">Ngày lắp DK ↓</option>

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { loadStoreViews } from "@/lib/stores";
-import { computeDashboard, statusIndex, type GroupStat } from "@/lib/domain";
+import { computeDashboard, statusIndex, STATUS_LABEL, type GroupStat } from "@/lib/domain";
 import { formatVN, addDaysISO } from "@/lib/dates";
 import { formatPct, formatVND } from "@/lib/format";
 import { can } from "@/lib/permissions";
@@ -19,7 +19,9 @@ export default async function Dashboard() {
       </div>
     );
   const d = computeDashboard(stores, today);
-  const flagged = stores.filter((s) => s.flags.length).length;
+  const cnt = (st: string) => d.byStatus.find((b) => b.status === st)?.count ?? 0;
+  const inProgress = cnt("DANG_LAP") + cnt("DANG_VAN_CHUYEN") + cnt("DA_DEN_CH");
+  const notUpdated = cnt("CHUA_CAP_NHAT");
   const pending = stores.filter((s) => s.pendingDates).length;
   const in7 = addDaysISO(today, 7);
   const next7 = stores.filter((s) => s.ngayLapDuKien && s.ngayLapDuKien >= today && s.ngayLapDuKien <= in7 && !["HOAN_THANH", "DA_NGHIEM_THU"].includes(s.trangThai)).sort((a, b) => a.ngayLapDuKien!.localeCompare(b.ngayLapDuKien!));
@@ -56,23 +58,37 @@ export default async function Dashboard() {
 
   return (
     <>
-      <div className="kpis">
-        <L className="kpi" href="/stores"><div className="l">Tổng cửa hàng</div><div className="v">{d.total}</div><div className="s">{formatVND(d.value)}</div></L>
-        <L className="kpi ok" href="/stores?flag=done"><div className="l">Hoàn thành (gồm đã nghiệm thu)</div><div className="v">{d.done} <span style={{ fontSize: 15 }}>· {formatPct(d.donePct)}</span></div><div className="prog" style={{ marginTop: 6 }}><i style={{ width: `${d.donePct}%` }} /></div></L>
-        <L className="kpi bad" href="/stores?flag=late"><div className="l">Trễ tiến độ</div><div className="v">{d.late}</div><div className="s">Quá ngày lắp dự kiến, chưa hoàn thành</div></L>
-        <L className="kpi warn" href="/stores?flag=flag"><div className="l">Có cờ lỗi dữ liệu</div><div className="v">{flagged}</div><div className="s">{pending} CH có ngày chờ xác nhận</div></L>
+      <div className="card hero">
+        <div className="muted">Tiến độ hoàn thành</div>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 6 }}>
+          <span className="num">{d.done}</span><span className="muted">/ {d.total} cửa hàng · {formatVND(d.value)}</span>
+        </div>
+        <div className="prog"><i style={{ width: `${d.donePct}%` }} /></div>
+        <div className="muted" style={{ marginTop: 8 }}>{formatPct(d.donePct)} đã hoàn thành (gồm đã nghiệm thu)</div>
       </div>
+      <div className="tiles">
+        <L className="tile" href="/stores?status=DANG_LAP"><b style={{ color: "var(--brand)" }}>{inProgress}</b><span>Đang lắp / vận chuyển</span></L>
+        <L className="tile" href="/stores?flag=late"><b style={{ color: "var(--bad)" }}>{d.late}</b><span>Trễ tiến độ</span></L>
+        <L className="tile" href="/stores?status=CHUA_CAP_NHAT"><b style={{ color: "var(--muted)" }}>{notUpdated}</b><span>Chưa cập nhật</span></L>
+      </div>
+      {d.late > 0 && (
+        <L className="alert" href="/stores?flag=late"><b>{d.late} cửa hàng quá ngày lắp dự kiến</b><br />Xem danh sách để đội trưởng xử lý.</L>
+      )}
+      {pending > 0 && (
+        <L className="alert" href={u.role === "ADMIN" ? "/admin/confirm-dates" : "/stores?flag=pending"}><b>Cần xác nhận ngày: {pending} cửa hàng</b><br />Ngày trong file có thể bị đảo ngày/tháng.</L>
+      )}
       <div className="grid2">
         <div className="card">
           <h3>Theo trạng thái</h3>
-          {d.byStatus.map((b) => (
-            <L key={b.status} className="statusrow" href={`/stores?status=${b.status}`}>
-              <span className="lbl"><StatusChip s={b.status} /></span>
-              <span className="prog" style={{ flex: 1 }}><i style={{ width: `${(b.count * 100) / d.total}%`, background: color(statusIndex(b.status)) }} /></span>
-              <span className="cnt">{b.count}</span>
-            </L>
-          ))}
-          <p className="small muted" style={{ margin: "8px 0 0" }}>Giá trị đã hoàn thành: {formatVND(d.valueDone)} / {formatVND(d.value)}</p>
+          <div className="stack">
+            {d.byStatus.filter((b) => b.count > 0).map((b) => <i key={b.status} style={{ width: `${(b.count * 100) / d.total}%`, background: color(statusIndex(b.status)) }} />)}
+          </div>
+          <div className="legend">
+            {d.byStatus.map((b) => (
+              <L key={b.status} href={`/stores?status=${b.status}`}><span className="dot" style={{ background: color(statusIndex(b.status)) }} />{STATUS_LABEL[b.status]} · {b.count}</L>
+            ))}
+          </div>
+          <p className="small muted" style={{ margin: "12px 0 0" }}>Giá trị đã hoàn thành: {formatVND(d.valueDone)} / {formatVND(d.value)}</p>
         </div>
         <div className="card">
           <h3>Lắp dự kiến 7 ngày tới ({next7.length})</h3>
