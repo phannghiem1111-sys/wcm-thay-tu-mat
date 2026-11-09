@@ -8,7 +8,7 @@ import { assertCanUpdate, can, ForbiddenError } from "@/lib/permissions";
 import { del } from "@vercel/blob";
 import { prisma } from "@/lib/db";
 import { fromISODate, toISODate, todayVN } from "@/lib/dates";
-import { normText, STATUS_LABEL } from "@/lib/domain";
+import { normText, STATUS_LABEL, STATUS_ORDER } from "@/lib/domain";
 import { planUpdate, type UpdateInput } from "@/lib/update";
 
 export type UpdateResult = { ok: true; message: string } | { ok: false; errors: string[] };
@@ -92,4 +92,22 @@ export async function syncAllNow(): Promise<UpdateResult> {
   await requireAction(can.importExcel);
   const r = await syncToSheet();
   return r.ok ? { ok: true, message: `Đã đồng bộ ${r.rows} cửa hàng sang Google Sheets` } : { ok: false, errors: [r.error ?? "Đồng bộ lỗi"] };
+}
+
+/**
+ * Chọn nhanh trạng thái từ nhãn trong danh sách/dashboard.
+ * Tự điền ngày thực tế = hôm nay nếu bước đó cần mà chưa có (sửa lại sau trong trang chi tiết).
+ * Vẫn đi qua updateStore: cùng kiểm tra quyền, nghiệp vụ và audit log.
+ */
+export async function quickStatus(site: string, status: string): Promise<UpdateResult> {
+  const u = await requireAction(can.viewStoreDetail);
+  const s = await prisma.store.findUnique({ where: { site }, select: { ngayVcThucTe: true, ngayLapThucTe: true } });
+  if (!s) return { ok: false, errors: ["Không tìm thấy cửa hàng"] };
+  const idx = STATUS_ORDER.indexOf(status as never);
+  const today = todayVN();
+  const input: UpdateInput = { trangThai: status };
+  if (idx >= STATUS_ORDER.indexOf("DA_DEN_CH") && !s.ngayVcThucTe) input.ngayVcThucTe = today;
+  if (idx >= STATUS_ORDER.indexOf("HOAN_THANH") && !s.ngayLapThucTe) input.ngayLapThucTe = today;
+  void u;
+  return updateStore(site, input);
 }
