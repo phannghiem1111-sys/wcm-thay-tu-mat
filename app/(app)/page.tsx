@@ -3,7 +3,7 @@ import { requireUser } from "@/lib/auth";
 import { loadStoreViews } from "@/lib/stores";
 import { computeDashboard, statusIndex, STATUS_LABEL, STATUS_ORDER, type GroupStat } from "@/lib/domain";
 import { formatVN, addDaysISO } from "@/lib/dates";
-import { formatPct, formatVND } from "@/lib/format";
+import { formatPct } from "@/lib/format";
 import { can } from "@/lib/permissions";
 import { StatusChip } from "@/components/StatusChip";
 import { QuickStatus } from "@/components/QuickStatus";
@@ -67,7 +67,7 @@ export default async function Dashboard() {
       <div className="card hero">
         <div className="muted">Tiến độ hoàn thành</div>
         <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 6 }}>
-          <span className="num">{d.done}</span><span className="muted">/ {d.total} cửa hàng · {formatVND(d.value)}</span>
+          <span className="num">{d.done}</span><span className="muted">/ {d.total} cửa hàng</span>
         </div>
         <div className="prog"><i style={{ width: `${d.donePct}%` }} /></div>
         <div className="muted" style={{ marginTop: 8 }}>{formatPct(d.donePct)} đã hoàn thành (gồm đã nghiệm thu)</div>
@@ -94,7 +94,6 @@ export default async function Dashboard() {
               <L key={b.status} href={`/stores?status=${b.status}`}><span className="dot" style={{ background: color(statusIndex(b.status)) }} />{STATUS_LABEL[b.status]} · {b.count}</L>
             ))}
           </div>
-          <p className="small muted" style={{ margin: "12px 0 0" }}>Giá trị đã hoàn thành: {formatVND(d.valueDone)} / {formatVND(d.value)}</p>
         </div>
         <div className="card">
           <h3>Lắp dự kiến 7 ngày tới ({next7.length})</h3>
