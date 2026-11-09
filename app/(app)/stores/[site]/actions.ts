@@ -1,8 +1,11 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
+import { syncToSheet } from "@/lib/sheets";
 import type { Prisma } from "@prisma/client";
 import { assignedStoreIds, requireAction } from "@/lib/auth";
 import { assertCanUpdate, can, ForbiddenError } from "@/lib/permissions";
+import { del } from "@vercel/blob";
 import { prisma } from "@/lib/db";
 import { fromISODate, toISODate, todayVN } from "@/lib/dates";
 import { normText, STATUS_LABEL } from "@/lib/domain";
@@ -55,9 +58,38 @@ export async function updateStore(site: string, input: UpdateInput): Promise<Upd
       await tx.auditLog.create({ data: { storeId: store.id, userId: u.id, action: "Cập nhật tay", changes: changes as Prisma.InputJsonValue } });
     });
     revalidatePath("/", "layout");
+    after(() => syncToSheet([store.id]));
     return { ok: true, message: "Đã lưu cập nhật" };
   } catch (e) {
     if (e instanceof ForbiddenError) return { ok: false, errors: [e.message] };
     throw e;
   }
+}
+
+export async function deletePhoto(id: string): Promise<UpdateResult> {
+  try {
+    const u = await requireAction(can.viewStoreDetail);
+    const ph = await prisma.photo.findUnique({ where: { id }, include: { store: { select: { id: true } } } });
+    if (!ph) return { ok: false, errors: ["Không tìm thấy ảnh"] };
+    assertCanUpdate(u, ph.store.id, await assignedStoreIds(u.id), ["photos"]);
+    if (u.role !== "ADMIN" && ph.uploadedBy !== u.id) return { ok: false, errors: ["Chỉ xoá được ảnh do chính bạn tải lên"] };
+    await prisma.$transaction([
+      prisma.photo.delete({ where: { id } }),
+      prisma.auditLog.create({ data: { storeId: ph.store.id, userId: u.id, action: "Xoá ảnh hiện trường" } }),
+    ]);
+    if (process.env.BLOB_READ_WRITE_TOKEN) await del(ph.url).catch(() => {});
+    revalidatePath("/", "layout");
+    after(() => syncToSheet([ph.store.id]));
+    return { ok: true, message: "Đã xoá ảnh" };
+  } catch (e) {
+    if (e instanceof ForbiddenError) return { ok: false, errors: [e.message] };
+    throw e;
+  }
+}
+
+/** Admin: đẩy toàn bộ dữ liệu sang Google Sheets ngay */
+export async function syncAllNow(): Promise<UpdateResult> {
+  await requireAction(can.importExcel);
+  const r = await syncToSheet();
+  return r.ok ? { ok: true, message: `Đã đồng bộ ${r.rows} cửa hàng sang Google Sheets` } : { ok: false, errors: [r.error ?? "Đồng bộ lỗi"] };
 }
