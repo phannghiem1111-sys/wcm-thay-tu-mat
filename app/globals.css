@@ -63,9 +63,8 @@ table.t td.n,table.t th.n{text-align:right;font-variant-numeric:tabular-nums}
 .statusrow .lbl{width:118px;flex:none}
 .statusrow .cnt{width:28px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 .filters{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
-@media(min-width:820px){.filters{grid-template-columns:2fr repeat(6,1fr)}}
+@media(min-width:820px){.filters{grid-template-columns:repeat(3,1fr)}}
 .filters .full{grid-column:1/-1}
-@media(min-width:820px){.filters .full{grid-column:auto}}
 input,select,textarea{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--field);border-radius:12px;padding:10px 12px;width:100%;min-height:44px}
 textarea{min-height:70px}
 label.f{display:block;font-size:12px;color:var(--muted);margin-bottom:10px}
@@ -151,3 +150,6 @@ dl.kv{display:block}
 dl.kv .r{display:flex;justify-content:space-between;gap:12px;font-size:13px;padding:7px 0;border-top:1px solid var(--line)}
 dl.kv .r:first-child{border-top:0;padding-top:0}
 dl.kv dt{color:var(--muted)} dl.kv dd{font-weight:500;text-align:right}
+
+@media(min-width:1132px){header.top{padding-left:calc((100vw - 1100px)/2 + 16px);padding-right:calc((100vw - 1100px)/2 + 16px)}}
+select{text-overflow:ellipsis}
