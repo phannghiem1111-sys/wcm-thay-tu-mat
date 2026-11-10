@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "Thay tủ mát WCM",
   description: "Theo dõi tiến độ thay tủ mát tại 47 cửa hàng WinCommerce",
   manifest: "/manifest.webmanifest",
-  icons: { icon: "/icon.svg", apple: "/icon.svg" },
+  icons: { icon: "/icon.svg", apple: "/apple-touch-icon.png" },
   appleWebApp: { capable: true, title: "Tủ mát WCM" },
 };
 export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#F5F7FA" };
