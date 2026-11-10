@@ -3,7 +3,7 @@ import { requirePage } from "@/lib/auth";
 import { can } from "@/lib/permissions";
 import { prisma } from "@/lib/db";
 import { ROLE_LABEL } from "@/lib/domain";
-import { CreateUserForm } from "./Forms";
+import { AutoAssign, CreateUserForm } from "./Forms";
 
 export default async function Users() {
   await requirePage(can.manageUsers);
@@ -21,6 +21,7 @@ export default async function Users() {
             </tr>
           ))}</tbody></table>
       </div>
+      <AutoAssign />
       <CreateUserForm />
     </>
   );

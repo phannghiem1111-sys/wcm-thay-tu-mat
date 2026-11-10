@@ -1,6 +1,6 @@
 "use client";
 import { useActionState, useState } from "react";
-import { createUser, setAssignments, updateUser } from "./actions";
+import { autoAssignAll, createUser, setAssignments, updateUser } from "./actions";
 
 const ROLES: [string, string][] = [["VIEWER", "Người xem"], ["DOI_TRUONG", "Đội trưởng KTKV"], ["NHA_THAU", "Nhà thầu"], ["ADMIN", "Admin"]];
 const Msg = ({ s }: { s?: { error?: string; ok?: string } }) => (s?.error ? <div className="err">{s.error}</div> : s?.ok ? <div className="okmsg">{s.ok}</div> : null);
@@ -64,6 +64,18 @@ export function AssignForm({ userId, stores, assigned, groups }: { userId: strin
         ))}
       </div>
       <button className="btn pri" style={{ marginTop: 10 }} disabled={busy}>Lưu phân công</button>
+    </form>
+  );
+}
+
+export function AutoAssign() {
+  const [s, act, busy] = useActionState(async () => autoAssignAll(), undefined);
+  return (
+    <form action={act} className="card">
+      <h3>Gán nhanh Đội trưởng KTKV</h3>
+      <p className="small muted">Tự gán các cửa hàng có tên Đội trưởng KTKV trong file trùng với họ tên tài khoản (không phân biệt dấu, hoa thường).</p>
+      <Msg s={s} />
+      <button className="btn pri" disabled={busy}>{busy ? "Đang gán…" : "Gán tự động cho tất cả Đội trưởng"}</button>
     </form>
   );
 }

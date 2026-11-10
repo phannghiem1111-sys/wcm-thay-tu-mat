@@ -5,6 +5,7 @@ import { z } from "zod";
 import { requireAction, hashPassword } from "@/lib/auth";
 import { can } from "@/lib/permissions";
 import { prisma } from "@/lib/db";
+import { matchStoreIds } from "@/lib/autoassign";
 
 const RoleZ = z.enum(["ADMIN", "DOI_TRUONG", "NHA_THAU", "VIEWER"]);
 type State = { error?: string; ok?: string } | undefined;
@@ -20,6 +21,10 @@ export async function createUser(_p: State, fd: FormData): Promise<State> {
   if (!r.success) return { error: r.error.issues[0].message };
   if (await prisma.user.findUnique({ where: { email: r.data.email } })) return { error: "Email đã tồn tại" };
   const u = await prisma.user.create({ data: { email: r.data.email, name: r.data.name, role: r.data.role, passwordHash: await hashPassword(r.data.password) } });
+  if (u.role === "DOI_TRUONG") {
+    const ids = matchStoreIds(u.name, await prisma.store.findMany({ select: { id: true, doiTruongKtkv: true } }));
+    if (ids.length) await prisma.storeAssignment.createMany({ data: ids.map((storeId) => ({ userId: u.id, storeId })), skipDuplicates: true });
+  }
   revalidatePath("/admin/users");
   redirect(`/admin/users/${u.id}`);
 }
@@ -56,4 +61,22 @@ export async function setAssignments(_p: State, fd: FormData): Promise<State> {
   ]);
   revalidatePath(`/admin/users/${userId}`);
   return { ok: `Đã gán ${storeIds.length} cửa hàng` };
+}
+
+/** Gán tự động cửa hàng cho mọi Đội trưởng KTKV theo tên trùng cột "Đội trưởng KTKV" (chỉ thêm, không xoá phần đã gán) */
+export async function autoAssignAll(): Promise<{ ok?: string; error?: string }> {
+  await requireAction(can.manageUsers);
+  const [users, stores] = await Promise.all([
+    prisma.user.findMany({ where: { role: "DOI_TRUONG", active: true } }),
+    prisma.store.findMany({ select: { id: true, doiTruongKtkv: true } }),
+  ]);
+  if (!users.length) return { error: "Chưa có tài khoản Đội trưởng KTKV nào" };
+  const parts: string[] = [];
+  for (const u of users) {
+    const ids = matchStoreIds(u.name, stores);
+    if (ids.length) await prisma.storeAssignment.createMany({ data: ids.map((storeId) => ({ userId: u.id, storeId })), skipDuplicates: true });
+    parts.push(`${u.name}: ${ids.length}`);
+  }
+  revalidatePath("/admin/users");
+  return { ok: `Đã gán theo tên — ${parts.join(", ")}. Tên nào ra 0 thì tên tài khoản chưa khớp tên trong file, gán tay ở trang người dùng.` };
 }
