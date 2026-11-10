@@ -65,25 +65,30 @@ export default async function Dashboard() {
   return (
     <>
       {(u.role === "DOI_TRUONG" || u.role === "NHA_THAU") && mine.size === 0 && <div className="card small" style={{ borderColor: "#C62828", color: "#C62828" }}>Tài khoản chưa được gán cửa hàng nào nên chưa cập nhật được. Liên hệ Admin để gán.</div>}
+      <div className="kpirow">
       <div className="card hero">
         <div className="muted">Tiến độ hoàn thành</div>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 6 }}>
+        <div className="heroline">
           <span className="num">{d.done}</span><span className="muted">/ {d.total} cửa hàng</span>
+          <span className="heropct">{formatPct(d.donePct)}</span>
         </div>
         <div className="prog"><i style={{ width: `${d.donePct}%` }} /></div>
-        <div className="muted" style={{ marginTop: 8 }}>{formatPct(d.donePct)} đã hoàn thành (gồm đã nghiệm thu)</div>
+        <div className="muted herosub">Gồm cả cửa hàng đã nghiệm thu</div>
       </div>
       <div className="tiles">
         <L className="tile" href="/stores?status=DANG_LAP"><b style={{ color: "var(--brand)" }}>{inProgress}</b><span>Đang lắp / vận chuyển</span></L>
         <L className="tile" href="/stores?flag=late"><b style={{ color: "var(--bad)" }}>{d.late}</b><span>Trễ tiến độ</span></L>
         <L className="tile" href="/stores?status=CHUA_CAP_NHAT"><b style={{ color: "var(--muted)" }}>{notUpdated}</b><span>Chưa cập nhật</span></L>
       </div>
+      </div>
+      <div className="alerts">
       {d.late > 0 && (
         <L className="alert" href="/stores?flag=late"><b>{d.late} cửa hàng quá ngày lắp dự kiến</b><br />Xem danh sách để đội trưởng xử lý.</L>
       )}
       {pending > 0 && (
         <L className="alert" href={u.role === "ADMIN" ? "/admin/confirm-dates" : "/stores?flag=pending"}><b>Cần xác nhận ngày: {pending} cửa hàng</b><br />Ngày trong file có thể bị đảo ngày/tháng.</L>
       )}
+      </div>
       <div className="grid2">
         <div className="card">
           <h3>Theo trạng thái</h3>

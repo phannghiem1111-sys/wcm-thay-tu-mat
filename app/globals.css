@@ -170,3 +170,24 @@ select{text-overflow:ellipsis}
 .install-dlg::backdrop{background:rgba(0,0,0,.45)}
 @media(max-width:380px){.install-btn{padding:8px}}
 @media(max-width:480px){header.top .avatar{display:none}header.top h1{font-size:20px}header.top .sub{font-size:12px}header.top{gap:8px}}
+
+/* Bố cục dashboard gọn: KPI một hàng, cảnh báo cạnh nhau */
+.kpirow{display:grid;gap:10px;margin-bottom:12px}
+.kpirow .card,.kpirow .tiles{margin-bottom:0}
+.hero{display:flex;flex-direction:column;justify-content:center}
+.heroline{display:flex;align-items:baseline;gap:8px;margin-top:4px}
+.heropct{margin-left:auto;font-size:18px;font-weight:700;color:var(--ok)}
+.hero .prog{margin-top:10px}
+.herosub{margin-top:6px;font-size:12px!important}
+.tile{display:flex;flex-direction:column;justify-content:center}
+.alerts{display:grid;gap:10px;margin-bottom:12px}
+.alerts:empty{display:none}
+.alerts .alert{margin-bottom:0;padding:10px 14px}
+@media(min-width:820px){
+  .kpirow{grid-template-columns:minmax(300px,1.1fr) 2fr;align-items:stretch}
+  .kpirow .tiles{height:100%}
+  .alerts{grid-template-columns:1fr 1fr}
+  .hero .num{font-size:44px}
+}
+@media(min-width:1272px){main{max-width:1240px}}
+@media(min-width:1272px){header.top{padding-left:calc((100vw - 1240px)/2 + 16px);padding-right:calc((100vw - 1240px)/2 + 16px)}}
