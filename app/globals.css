@@ -165,3 +165,8 @@ select{text-overflow:ellipsis}
 .item .itemlink{color:inherit;text-decoration:none;display:block}
 .item .t1 .name{padding-right:120px}
 @media(min-width:820px){.qs-menu{position:absolute;left:auto;right:0;bottom:auto;top:100%;margin-top:4px;min-width:200px;max-height:none}}
+.install-btn{background:var(--brand);color:var(--brand-ink);border:0;border-radius:10px;padding:8px 12px;font:inherit;font-size:13px;font-weight:600;min-height:40px;cursor:pointer;white-space:nowrap}
+.install-dlg{border:0;border-radius:16px;padding:20px;max-width:440px;width:calc(100% - 32px);background:var(--card);color:var(--ink)}
+.install-dlg::backdrop{background:rgba(0,0,0,.45)}
+@media(max-width:380px){.install-btn{padding:8px}}
+@media(max-width:480px){header.top .avatar{display:none}header.top h1{font-size:20px}header.top .sub{font-size:12px}header.top{gap:8px}}
