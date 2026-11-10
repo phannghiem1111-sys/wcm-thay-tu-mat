@@ -24,6 +24,7 @@ export default async function StoreList({ searchParams }: { searchParams: Promis
   const rows = filterStores(stores, f);
   return (
     <>
+      {(u.role === "DOI_TRUONG" || u.role === "NHA_THAU") && mine.size === 0 && <div className="card small" style={{ borderColor: "#C62828", color: "#C62828" }}>Tài khoản chưa được gán cửa hàng nào nên chưa cập nhật được. Liên hệ Admin để gán.</div>}
       <h2>Cửa hàng <span className="muted" style={{ fontWeight: 500, fontSize: 16 }}>· {stores.length}</span></h2>
       <Filters
         tinh={uniq(stores.map((s) => s.tinh))}
