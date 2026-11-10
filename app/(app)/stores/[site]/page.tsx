@@ -4,8 +4,7 @@ import { requirePage, assignedStoreIds } from "@/lib/auth";
 import { can, canEditStore } from "@/lib/permissions";
 import { prisma } from "@/lib/db";
 import { formatMonthVN, formatVN, toISODate, todayVN } from "@/lib/dates";
-import { formatVND } from "@/lib/format";
-import { dataFlags, isLate, storeTotal, STATUS_LABEL } from "@/lib/domain";
+import { dataFlags, isLate, STATUS_LABEL } from "@/lib/domain";
 import { StatusChip } from "@/components/StatusChip";
 import { COLUMNS } from "@/lib/import/parse";
 import { canEditField } from "@/lib/permissions";
@@ -94,8 +93,6 @@ export default async function StoreDetail({ params }: { params: Promise<{ site: 
         <div className="card"><h3>Thiết bị</h3><KV rows={[
           ["maTsXuatKho", s.maTsXuatKho], ["tenVatTu", s.tenVatTu], ["article", s.article], ["nhaCungCap", s.nhaCungCap], ["model", s.model],
           ["serialGoc", s.serialGoc], ["serialThucTe", s.serialThucTe], ["xuatXu", s.xuatXu], ["dvt", s.dvt], ["soLuong", s.soLuong],
-          ["donGiaTaiSan", formatVND(s.donGiaTaiSan)], ["donGiaVanChuyen", formatVND(s.donGiaVanChuyen)], ["donGiaLapDat", formatVND(s.donGiaLapDat)],
-          ["Tổng", <b key="t">{formatVND(storeTotal({ soLuong: s.soLuong, donGiaTaiSan: Number(s.donGiaTaiSan), donGiaVanChuyen: Number(s.donGiaVanChuyen), donGiaLapDat: Number(s.donGiaLapDat) }))}</b>],
         ]} /></div>
       </div>
       <div className="card"><h3>Ghi chú & hồ sơ</h3><KV rows={[["ghiChu", s.ghiChu], ["linkHoSo", s.linkHoSo ? <a href={s.linkHoSo} target="_blank" rel="noopener noreferrer">Mở link</a> : null]]} /></div>
