@@ -64,6 +64,7 @@ export default async function Dashboard() {
 
   return (
     <>
+      {(u.role === "DOI_TRUONG" || u.role === "NHA_THAU") && mine.size === 0 && <div className="card small" style={{ borderColor: "#C62828", color: "#C62828" }}>Tài khoản chưa được gán cửa hàng nào nên chưa cập nhật được. Liên hệ Admin để gán.</div>}
       <div className="card hero">
         <div className="muted">Tiến độ hoàn thành</div>
         <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 6 }}>

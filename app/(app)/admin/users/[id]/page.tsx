@@ -25,6 +25,7 @@ export default async function UserDetail({ params }: { params: Promise<{ id: str
       <p className="small"><Link href="/admin/users">← Người dùng</Link></p>
       <h2>{u.name} <span className="small muted">{u.email}</span></h2>
       <EditUserForm u={{ id: u.id, name: u.name, role: u.role, active: u.active }} />
+      {scoped && u.assignments.length === 0 && <div className="card small" style={{ borderColor: "#C62828", color: "#C62828" }}>Chưa gán cửa hàng nào: tài khoản này chưa cập nhật được cửa hàng nào. Chọn cửa hàng bên dưới rồi bấm lưu.</div>}
       {scoped
         ? <AssignForm userId={u.id} stores={stores} assigned={u.assignments.map((a) => a.storeId)} groups={groups} />
         : <div className="card small muted">Vai trò này không cần gán cửa hàng (Admin sửa được tất cả; Người xem chỉ xem dashboard).</div>}
