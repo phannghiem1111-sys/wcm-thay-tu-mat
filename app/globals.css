@@ -191,3 +191,9 @@ select{text-overflow:ellipsis}
 }
 @media(min-width:1272px){main{max-width:1240px}}
 @media(min-width:1272px){header.top{padding-left:calc((100vw - 1240px)/2 + 16px);padding-right:calc((100vw - 1240px)/2 + 16px)}}
+
+/* Dashboard hai cột xếp khít, không để trống */
+.cols{display:grid;gap:12px;align-items:start}
+.col{display:flex;flex-direction:column;gap:12px;min-width:0}
+.col .card{margin-bottom:0}
+@media(min-width:820px){.cols{grid-template-columns:1fr 1fr}}

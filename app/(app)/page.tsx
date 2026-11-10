@@ -89,7 +89,8 @@ export default async function Dashboard() {
         <L className="alert" href={u.role === "ADMIN" ? "/admin/confirm-dates" : "/stores?flag=pending"}><b>Cần xác nhận ngày: {pending} cửa hàng</b><br />Ngày trong file có thể bị đảo ngày/tháng.</L>
       )}
       </div>
-      <div className="grid2">
+      <div className="cols">
+        <div className="col">
         <div className="card">
           <h3>Theo trạng thái</h3>
           <div className="stack">
@@ -101,17 +102,18 @@ export default async function Dashboard() {
             ))}
           </div>
         </div>
+          <Group title="tỉnh" rows={d.byTinh} param="tinh" />
+        </div>
+        <div className="col">
         <div className="card">
           <h3>Lắp dự kiến 7 ngày tới ({next7.length})</h3>
           {next7.length ? <MiniTable rows={next7} /> : <p className="small muted">Không có.</p>}
           {late.length > 0 && (<><h3 style={{ marginTop: 12, color: "var(--bad)" }}>Trễ lâu nhất</h3><MiniTable rows={late} /></>)}
         </div>
+          <Group title="đội trưởng" rows={d.byDoiTruong} param="doiTruong" />
+          <Group title="phụ trách khu vực" rows={d.byPhuTrach} param="phuTrach" />
+        </div>
       </div>
-      <div className="grid2">
-        <Group title="tỉnh" rows={d.byTinh} param="tinh" />
-        <Group title="đội trưởng" rows={d.byDoiTruong} param="doiTruong" />
-      </div>
-      <Group title="phụ trách khu vực" rows={d.byPhuTrach} param="phuTrach" />
       <p className="small muted">Hôm nay {formatVN(today)}.</p>
     </>
   );
