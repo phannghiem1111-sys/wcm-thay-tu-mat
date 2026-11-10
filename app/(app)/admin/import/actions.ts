@@ -1,5 +1,6 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { autoAssignDoiTruong } from "@/lib/autoassign-db";
 import { after } from "next/server";
 import { syncToSheet } from "@/lib/sheets";
 import { requireAction } from "@/lib/auth";
@@ -37,6 +38,7 @@ export async function commitImport(fd: FormData): Promise<{ ok: true; summary: A
     const result = parseWorkbook(await readFile(fd));
     if (!result.rows.length) return { ok: false, error: "Không có dòng hợp lệ để nhập" };
     const summary = await applyImport(prisma, result, u.id);
+    await autoAssignDoiTruong(); // cửa hàng mới nhập tự gán cho Đội trưởng trùng tên
     revalidatePath("/", "layout");
     after(() => syncToSheet());
     return { ok: true, summary, skipped: result.errors.length };
