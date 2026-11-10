@@ -3,7 +3,6 @@ import { prisma } from "@/lib/db";
 import { ROLE_LABEL } from "@/lib/domain";
 import { Nav } from "@/components/Nav";
 import { InstallApp } from "@/components/InstallApp";
-import { logoutAction } from "../login/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +18,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </div>
         <div className="avatar" aria-hidden="true">{(u.name.trim()[0] ?? "W").toUpperCase()}</div>
         <InstallApp />
-        <form action={logoutAction}><button title="Đăng xuất">Thoát</button></form>
       </header>
       <main>{children}</main>
       <Nav role={u.role} pending={pending} />

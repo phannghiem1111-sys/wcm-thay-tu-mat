@@ -14,5 +14,5 @@ export async function loginAction(_prev: { error?: string; email?: string } | un
 
 export async function logoutAction() {
   await destroySession();
-  redirect("/login");
+  redirect("/");
 }

@@ -28,21 +28,29 @@ export async function destroySession() {
 
 export type SessionUser = { id: string; email: string; name: string; role: Role };
 
-export async function getCurrentUser(): Promise<SessionUser | null> {
-  const token = (await cookies()).get(SESSION_COOKIE)?.value;
-  if (!token) return null;
-  try {
-    const { payload } = await jwtVerify(token, secret());
-    if (!payload.sub) return null;
-    const u = await prisma.user.findUnique({ where: { id: payload.sub }, select: { id: true, email: true, name: true, role: true, active: true } });
-    if (!u || !u.active) return null;
-    return { id: u.id, email: u.email, name: u.name, role: u.role };
-  } catch {
-    return null;
-  }
+/** Bỏ đăng nhập: không có phiên => dùng tài khoản Admin (ADMIN_EMAIL, hoặc Admin đầu tiên còn hoạt động). */
+async function defaultUser(): Promise<SessionUser | null> {
+  const email = (process.env.ADMIN_EMAIL ?? "").trim().toLowerCase();
+  const sel = { id: true, email: true, name: true, role: true } as const;
+  const u =
+    (email ? await prisma.user.findFirst({ where: { email, active: true }, select: sel }) : null) ??
+    (await prisma.user.findFirst({ where: { role: "ADMIN", active: true }, orderBy: { createdAt: "asc" }, select: sel }));
+  return u ? { id: u.id, email: u.email, name: u.name, role: u.role } : null;
 }
 
-/** Dùng trong page: chưa đăng nhập => /login */
+export async function getCurrentUser(): Promise<SessionUser | null> {
+  const token = (await cookies()).get(SESSION_COOKIE)?.value;
+  if (token) {
+    try {
+      const { payload } = await jwtVerify(token, secret());
+      const u = payload.sub ? await prisma.user.findUnique({ where: { id: payload.sub }, select: { id: true, email: true, name: true, role: true, active: true } }) : null;
+      if (u && u.active) return { id: u.id, email: u.email, name: u.name, role: u.role };
+    } catch {}
+  }
+  return defaultUser();
+}
+
+/** Dùng trong page: chưa có tài khoản Admin nào => /login */
 export async function requireUser(): Promise<SessionUser> {
   const u = await getCurrentUser();
   if (!u) redirect("/login");
